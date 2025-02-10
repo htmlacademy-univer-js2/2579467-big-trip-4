@@ -1,7 +1,8 @@
 import {createElement} from '../render.js';
 
 function createEventTemplate() {
-  return `<div class="event">
+  return `<li class="trip-events__item">
+              <div class="event">
                 <time class="event__date" datetime="2019-03-18">MAR 18</time>
                 <div class="event__type">
                   <img class="event__type-icon" width="42" height="42" src="img/icons/taxi.png" alt="Event type icon">
@@ -35,7 +36,8 @@ function createEventTemplate() {
                 <button class="event__rollup-btn" type="button">
                   <span class="visually-hidden">Open event</span>
                 </button>
-              </div>`;
+              </div>
+            </li>`;
 }
 
 export default class EventView {
