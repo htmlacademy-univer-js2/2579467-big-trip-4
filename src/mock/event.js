@@ -1,3 +1,4 @@
+import { nanoid } from 'nanoid';
 import {getRandomArrayElement} from '../utils.js';
 
 const mockEvents = [
@@ -8,7 +9,7 @@ const mockEvents = [
     endDate: new Date('2025-02-18T11:30'),
     price: 80,
     offers: [1,4],
-    isFavourite: true,
+    isFavorite: true,
   },
   {
     type: 'flight',
@@ -17,7 +18,7 @@ const mockEvents = [
     endDate: new Date('2025-02-22T03:00'),
     price: 110,
     offers: [1],
-    isFavourite: false,
+    isFavorite: false,
   },
   {
     type: 'check-in',
@@ -26,7 +27,7 @@ const mockEvents = [
     endDate: new Date('2025-02-22T04:00'),
     price: 10,
     offers: [1,3,5],
-    isFavourite: true,
+    isFavorite: true,
   },
   {
     type: 'taxi',
@@ -35,7 +36,7 @@ const mockEvents = [
     endDate: new Date('2025-02-22T23:30'),
     price: 35,
     offers: [1, 2],
-    isFavourite: false,
+    isFavorite: false,
   },
   {
     type: 'restaurant',
@@ -44,7 +45,7 @@ const mockEvents = [
     endDate: new Date('2025-02-23T14:30'),
     price: 1500,
     offers: [3],
-    isFavourite: true,
+    isFavorite: true,
   },
   {
     type: 'taxi',
@@ -53,12 +54,15 @@ const mockEvents = [
     endDate: new Date('2025-02-25T12:00'),
     price: 50,
     offers: [2,3,5],
-    isFavourite: true,
+    isFavorite: true,
   }
 ];
 
 function getRandomEvent() {
-  return getRandomArrayElement(mockEvents);
+  return {
+    id: nanoid(),
+    ...getRandomArrayElement(mockEvents)
+  };
 }
 
 export {getRandomEvent};
