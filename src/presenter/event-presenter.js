@@ -77,6 +77,7 @@ export default class EventPresenter {
   #replaceFormToEvent() {
     replace(this.#eventComponent, this.#eventEditComponent);
     this.#isEventEditing = false;
+    document.removeEventListener('keydown', this.#escKeyDownHandler);
   }
 
   #handleFavoriteClick = () => {

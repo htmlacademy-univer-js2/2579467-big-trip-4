@@ -1,4 +1,3 @@
-import { nanoid } from 'nanoid';
 import {getRandomArrayElement} from '../utils.js';
 
 const mockEvents = [
@@ -60,7 +59,7 @@ const mockEvents = [
 
 function getRandomEvent() {
   return {
-    id: nanoid(),
+    id: self.crypto.randomUUID(),
     ...getRandomArrayElement(mockEvents)
   };
 }

@@ -52,9 +52,9 @@ function getOffersByType(event) {
   return mockOffers.find((offer) => offer.type === event.type).offers;
 }
 
-function updateItem(items, update) {
-  return items.map((item) => item.id === update.id ? update : item);
+function updatePointData(points, updatedPointData) {
+  return points.map((point) => point.id === updatedPointData.id ? updatedPointData : point);
 }
 
 
-export {getRandomArrayElement, formatEventDate, formatEventTime, getDestinationById, getOffersByType, formatEventDuration, formatFormEventDate, updateItem};
+export {getRandomArrayElement, formatEventDate, formatEventTime, getDestinationById, getOffersByType, formatEventDuration, formatFormEventDate, updatePointData};

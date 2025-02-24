@@ -4,7 +4,7 @@ import EventListView from '../view/event-list-view.js';
 import FilterView from '../view/filter-view.js';
 import { render } from '../framework/render.js';
 import EventPresenter from './event-presenter.js';
-import { updateItem } from '../utils.js';
+import { updatePointData } from '../utils.js';
 
 export default class BoardPresenter {
   #eventListComponent = new EventListView();
@@ -47,7 +47,7 @@ export default class BoardPresenter {
   }
 
   #handleEventChange = (updatedEventList) => {
-    this.#boardEvents = updateItem(this.#boardEvents, updatedEventList);
+    this.#boardEvents = updatePointData(this.#boardEvents, updatedEventList);
     this.#eventPresenters.get(updatedEventList.id).init(updatedEventList);
   };
 
