@@ -28,8 +28,7 @@ function editFormViewTemplate(event) {
         <span class="event__offer-price">${offer.price}</span>
         </label>
       </div>`;
-    })
-    .join('');
+    }).join('');
 
   return `<li class="trip-events__item">
             <form class="event event--edit" action="#" method="post">
@@ -185,10 +184,13 @@ export default class FormEditView extends AbstractStatefulView {
   };
 
   #eventTypeEditHandler = (evt) => {
-    evt.preventDefault();
-    const eventType = evt.target.value;
+
+    const target = evt.target;
+    const eventType = target.value;
+
     this.updateElement({
-      type: eventType
+      type: eventType,
+      offers: []
     });
   };
 

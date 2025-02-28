@@ -30,6 +30,40 @@ const mockOffers = [
     ]
   },
   {
+    'type': 'bus',
+    'offers': [
+      { 'id': 1, 'title': 'Window Seat', 'price': 10 },
+      { 'id': 2, 'title': 'Extra Luggage', 'price': 15 },
+      { 'id': 3, 'title': 'Wi-Fi Access', 'price': 5 },
+      { 'id': 4, 'title': 'Priority Boarding', 'price': 20 },
+      { 'id': 5, 'title': 'Snack Pack', 'price': 8 }
+    ]
+  },
+  {
+    'type': 'train',
+    'offers': [
+      { 'id': 1, 'title': 'First Class Seat', 'price': 50 },
+      { 'id': 2, 'title': 'Sleeper Cabin', 'price': 100 },
+      { 'id': 3, 'title': 'Meal Service', 'price': 30 },
+      { 'id': 4, 'title': 'Wi-Fi Access', 'price': 10 },
+      { 'id': 5, 'title': 'Power Outlet', 'price': 5 }
+    ]
+  },
+  {
+    'type': 'ship',
+    'offers': [
+      { 'id': 1, 'title': 'Ocean View Cabin', 'price': 150 },
+      { 'id': 2, 'title': 'Buffet Access', 'price': 50 },
+      { 'id': 3, 'title': 'VIP Lounge', 'price': 80 },
+      { 'id': 4, 'title': 'Spa Package', 'price': 120 },
+      { 'id': 5, 'title': 'Shore Excursion', 'price': 200 }
+    ]
+  },
+  {
+    'type': 'drive',
+    'offers': []
+  },
+  {
     'type': 'flight',
     'offers': [
       {
@@ -87,6 +121,13 @@ const mockOffers = [
         'title': 'City View Room',
         'price': 40,
       }
+    ]
+  },
+  {
+    'type': 'sightseeing',
+    'offers': [
+      { 'id': 1, 'title': 'Guided Tour', 'price': 60 },
+      { 'id': 2, 'title': 'Skip-the-Line Ticket', 'price': 40 }
     ]
   },
   {
