@@ -38,7 +38,6 @@ export default class EventPresenter {
       event: this.#event,
       onFormSubmit: () => {
         this.#replaceFormToEvent();
-        document.removeEventListener('keydown', this.#escKeyDownHandler);
       }
     });
 
@@ -62,8 +61,8 @@ export default class EventPresenter {
   #escKeyDownHandler = (evt) => {
     if (evt.key === 'Escape') {
       evt.preventDefault();
+      this.#eventEditComponent.reset(this.#event);
       this.#replaceFormToEvent();
-      document.removeEventListener('keydown', this.#escKeyDownHandler);
     }
   };
 
@@ -75,9 +74,14 @@ export default class EventPresenter {
   }
 
   #replaceFormToEvent() {
+    const updatedEvent = FormEditView.parseStateToEvent(this.#eventEditComponent._state);
+    this.#event = updatedEvent;
+    this.#handleDataChange(updatedEvent);
+
     replace(this.#eventComponent, this.#eventEditComponent);
     this.#isEventEditing = false;
     document.removeEventListener('keydown', this.#escKeyDownHandler);
+
   }
 
   #handleFavoriteClick = () => {
@@ -86,6 +90,7 @@ export default class EventPresenter {
 
   resetView() {
     if (this.#isEventEditing) {
+      this.#eventEditComponent.reset(this.#event);
       this.#replaceFormToEvent();
     }
   }

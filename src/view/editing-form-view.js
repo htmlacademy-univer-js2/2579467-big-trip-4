@@ -1,8 +1,9 @@
-import AbstractView from '../framework/view/abstract-view.js';
-import {getDestinationById} from '../utils.js';
-import {formatFormEventDate} from '../utils.js';
-import {formatEventTime} from '../utils.js';
-import {getOffersByType} from '../utils.js';
+import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
+import { getDestinationById, formatFormEventDate, formatEventTime, getOffersByType, getDestinationByCityName, setSaveButtonDisabled} from '../utils.js';
+
+import flatpickr from 'flatpickr';
+
+import 'flatpickr/dist/flatpickr.min.css';
 
 function editFormViewTemplate(event) {
   const {startDate, endDate, type, price} = event;
@@ -87,9 +88,10 @@ function editFormViewTemplate(event) {
                     </label>
                     <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${destinationName}" list="destination-list-1">
                     <datalist id="destination-list-1">
-                      <option value="Amsterdam"></option>
-                      <option value="Geneva"></option>
-                      <option value="Chamonix"></option>
+                      <option value="Prague"></option>
+                      <option value="Barcelona"></option>
+                      <option value="Tokyo"></option>
+                      <option value="Paris"></option>
                     </datalist>
                   </div>
                   <div class="event__field-group  event__field-group--time">
@@ -128,25 +130,148 @@ function editFormViewTemplate(event) {
             </li>`;
 }
 
-export default class FormEditView extends AbstractView {
-  #event = null;
+export default class FormEditView extends AbstractStatefulView {
   #handleFormSubmit = null;
+  #datepicker = null;
 
   constructor({event, onFormSubmit}) {
     super();
-    this.#event = event;
+    this._setState(FormEditView.parseEventToState(event));
     this.#handleFormSubmit = onFormSubmit;
 
-    this.element.querySelector('form').addEventListener('submit', this.#formCloseHandler);
-    this.element.querySelector('.event__rollup-btn').addEventListener('click', this.#formCloseHandler);
+    this._restoreHandlers();
   }
 
   get template() {
-    return editFormViewTemplate(this.#event);
+    return editFormViewTemplate(this._state);
+  }
+
+  removeElement() {
+    super.removeElement();
+
+    if (this.#datepicker) {
+      this.#datepicker.destroy();
+      this.#datepicker = null;
+    }
+  }
+
+  _restoreHandlers() {
+    this.element.querySelector('form').addEventListener('submit', this.#formCloseHandler);
+    this.element.querySelector('.event__rollup-btn').addEventListener('click', this.#formCloseHandler);
+
+    this.element.querySelectorAll('.event__type-input').forEach((input) => {
+      input.addEventListener('click', this.#eventTypeEditHandler);
+    });
+
+    this.element.querySelectorAll('.event__input--destination').forEach((input) => {
+      input.addEventListener('change', this.#destinationEditHandler);
+    });
+
+    this.element.querySelectorAll('.event__offer-checkbox').forEach((input) => {
+      input.addEventListener('click', this.#extraOffersEditHandler);
+    });
+
+    this.element.querySelectorAll('.event__input--price').forEach((input) => {
+      input.addEventListener('change', this.#eventPriceEditHandler);
+    });
+
+    this.#setDatepicker();
   }
 
   #formCloseHandler = (evt) => {
     evt.preventDefault();
-    this.#handleFormSubmit();
+    const updatedEvent = FormEditView.parseStateToEvent(this._state);
+    this.#handleFormSubmit(updatedEvent);
   };
+
+  #eventTypeEditHandler = (evt) => {
+    evt.preventDefault();
+    const eventType = evt.target.value;
+    this.updateElement({
+      type: eventType
+    });
+  };
+
+  #destinationEditHandler = (evt) => {
+    evt.preventDefault();
+    const cityName = evt.target.value;
+    const destination = getDestinationByCityName(cityName);
+
+    if (destination) {
+      this.updateElement({
+        destinationID: destination.id
+      });
+    } else {
+      setSaveButtonDisabled();
+    }
+  };
+
+  #extraOffersEditHandler = (evt) => {
+    const offerId = Number(evt.target.id.slice(-1));
+    this.updateElement({
+      offers: this._state.offers.includes(offerId) ? this._state.offers.filter((id) => id !== offerId) : [...this._state.offers, offerId]
+    });
+  };
+
+  #eventPriceEditHandler = (evt) => {
+    evt.preventDefault();
+    const eventPrice = evt.target.value;
+
+    if (eventPrice > 0) {
+      this.updateElement({
+        price: eventPrice
+      });
+    } else {
+      setSaveButtonDisabled();
+    }
+  };
+
+  #startDateChangeHandler = ([userDate]) => {
+    if (userDate <= this._state.endDate) {
+      this.updateElement({
+        startDate: userDate,
+      });
+    } else {
+      setSaveButtonDisabled();
+    }
+  };
+
+  #endDateChangeHandler = ([userDate]) => {
+    if (userDate >= this._state.startDate) {
+      this.updateElement({
+        endDate: userDate,
+      });
+    } else {
+      setSaveButtonDisabled();
+    }
+  };
+
+  #setDatepicker() {
+    this.#initDatepicker('#event-start-time-1', 'startDate', this.#startDateChangeHandler);
+    this.#initDatepicker('#event-end-time-1', 'endDate', this.#endDateChangeHandler);
+  }
+
+  #initDatepicker(selector, stateKey, handler) {
+    flatpickr(this.element.querySelector(selector), {
+      dateFormat: 'd/m/y h:i',
+      enableTime: true,
+      defaultDate: this._state[stateKey],
+      onChange: handler,
+    });
+  }
+
+
+  reset(event) {
+    this.updateElement(FormEditView.parseStateToEvent(event));
+  }
+
+  static parseEventToState(event) {
+    return {...event};
+  }
+
+  static parseStateToEvent(state) {
+    const event = {...state};
+
+    return event;
+  }
 }
