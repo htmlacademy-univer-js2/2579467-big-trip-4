@@ -56,5 +56,12 @@ function updatePointData(points, updatedPointData) {
   return points.map((point) => point.id === updatedPointData.id ? updatedPointData : point);
 }
 
+function getDestinationByCityName(cityName) {
+  return mockDestinations.find((destination) => destination.cityName === cityName);
+}
 
-export {getRandomArrayElement, formatEventDate, formatEventTime, getDestinationById, getOffersByType, formatEventDuration, formatFormEventDate, updatePointData};
+const setSaveButtonDisabled = () => {
+  document.querySelector('.event__save-btn').disabled = true;
+};
+
+export {getRandomArrayElement, formatEventDate, formatEventTime, getDestinationById, getOffersByType, formatEventDuration, formatFormEventDate, updatePointData, getDestinationByCityName, setSaveButtonDisabled};
