@@ -74,7 +74,7 @@ export default class EventPresenter {
   }
 
   #replaceFormToEvent() {
-    const updatedEvent = FormEditView.parseStateToEvent(this.#eventEditComponent._state);
+    const updatedEvent = this.#eventEditComponent._state;
     this.#event = updatedEvent;
     this.#handleDataChange(updatedEvent);
 

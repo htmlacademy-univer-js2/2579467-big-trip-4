@@ -24,8 +24,8 @@ function editFormViewTemplate(event) {
       const offerName = offer.title.toLowerCase().split(' ').join('-');
 
       return `<div class="event__offer-selector">
-        <input class="event__offer-checkbox  visually-hidden" id="event-offer-${offerName}-${offer.id}" type="checkbox" name="event-offer-${offerName}" ${checked}>
-        <label class="event__offer-label" for="event-offer-${offerName}-${offer.id}">
+        <input class="event__offer-checkbox  visually-hidden" id="${offer.id}" type="checkbox" name="event-offer-${offerName}" ${checked}>
+        <label class="event__offer-label" for="${offer.id}">
         <span class="event__offer-title">${offer.title}</span>
         &plus;&euro;&nbsp;
         <span class="event__offer-price">${offer.price}</span>
@@ -90,7 +90,7 @@ function editFormViewTemplate(event) {
                 </header>
                 <section class="event__details">
                   <section class="event__section  event__section--offers">
-                    <h3 class="event__section-title  event__section-title--offers">Offers</h3>
+                    ${offers.length > 0 ? '<h3 class="event__section-title  event__section-title--destination">Offers</h3>' : ''}
                     <div class="event__available-offers">
                     ${offersTemplate}
                     </div>
@@ -110,7 +110,7 @@ export default class FormEditView extends AbstractStatefulView {
 
   constructor({event, onFormSubmit}) {
     super();
-    this._setState(FormEditView.parseEventToState(event));
+    this._setState(event);
     this.#handleFormSubmit = onFormSubmit;
 
     this._restoreHandlers();
@@ -118,6 +118,10 @@ export default class FormEditView extends AbstractStatefulView {
 
   get template() {
     return editFormViewTemplate(this._state);
+  }
+
+  get state() {
+    return this._state;
   }
 
   removeElement() {
@@ -154,8 +158,7 @@ export default class FormEditView extends AbstractStatefulView {
 
   #formCloseHandler = (evt) => {
     evt.preventDefault();
-    const updatedEvent = FormEditView.parseStateToEvent(this._state);
-    this.#handleFormSubmit(updatedEvent);
+    this.#handleFormSubmit(this._state);
   };
 
   #eventTypeEditHandler = (evt) => {
@@ -184,10 +187,12 @@ export default class FormEditView extends AbstractStatefulView {
   };
 
   #extraOffersEditHandler = (evt) => {
-    const offerId = Number(evt.target.id.slice(-1));
+    const offerId = Number(evt.target.id);
+
     this.updateElement({
       offers: this._state.offers.includes(offerId) ? this._state.offers.filter((id) => id !== offerId) : [...this._state.offers, offerId]
     });
+
   };
 
   #eventPriceEditHandler = (evt) => {
@@ -239,16 +244,6 @@ export default class FormEditView extends AbstractStatefulView {
 
 
   reset(event) {
-    this.updateElement(FormEditView.parseStateToEvent(event));
-  }
-
-  static parseEventToState(event) {
-    return {...event};
-  }
-
-  static parseStateToEvent(state) {
-    const event = {...state};
-
-    return event;
+    this.updateElement(event);
   }
 }
