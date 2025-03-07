@@ -42,7 +42,6 @@ export default class EventsModel extends Observable {
 
   deleteEvent(updateType, update) {
     const index = this.#events.findIndex((event) => event.id === update.id);
-
     this.#events = [
       ...this.#events.slice(0, index),
       ...this.#events.slice(index + 1),
