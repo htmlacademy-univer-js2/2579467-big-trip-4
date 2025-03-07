@@ -20,4 +20,6 @@ export default class NewEventButtonView extends AbstractView {
     evt.preventDefault();
     this.#handleClick();
   };
+
+
 }

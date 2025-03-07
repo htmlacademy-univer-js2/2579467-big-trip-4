@@ -40,7 +40,10 @@ export default class EventPresenter {
       onFormSubmit: () => {
         this.#replaceFormToEvent();
       },
-      onDeleteClick: this.#handleDeleteClick
+      onDeleteClick: this.#handleDeleteClick,
+      onCloseClick: () => {
+        this.#replaceFormToEvent();
+      }
     });
 
     if (prevEventComponent === null || prevEventEditComponent === null) {

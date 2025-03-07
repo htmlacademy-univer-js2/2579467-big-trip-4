@@ -108,13 +108,15 @@ function editFormViewTemplate(event) {
 export default class FormEditView extends AbstractStatefulView {
   #handleFormSubmit = null;
   #handleDeleteClick = null;
+  #handleCloseClick = null;
   #datepicker = null;
 
-  constructor({event = EMPTY_EVENT, onFormSubmit, onDeleteClick}) {
+  constructor({event = EMPTY_EVENT, onFormSubmit, onDeleteClick, onCloseClick}) {
     super();
     this._setState(event);
     this.#handleFormSubmit = onFormSubmit;
     this.#handleDeleteClick = onDeleteClick;
+    this.#handleCloseClick = onCloseClick;
 
     this._restoreHandlers();
   }
@@ -138,7 +140,7 @@ export default class FormEditView extends AbstractStatefulView {
 
   _restoreHandlers() {
     this.element.querySelector('form').addEventListener('submit', this.#formCloseHandler);
-    this.element.querySelector('.event__rollup-btn').addEventListener('click', this.#formCloseHandler);
+    this.element.querySelector('.event__rollup-btn').addEventListener('click', this.#closeClickHandler);
 
     this.element.querySelectorAll('.event__type-input').forEach((input) => {
       input.addEventListener('click', this.#eventTypeEditHandler);
@@ -268,5 +270,10 @@ export default class FormEditView extends AbstractStatefulView {
   #formDeleteClickHandler = (evt) => {
     evt.preventDefault();
     this.#handleDeleteClick(this.state);
+  };
+
+  #closeClickHandler = (evt) => {
+    evt.preventDefault();
+    this.#handleCloseClick();
   };
 }
