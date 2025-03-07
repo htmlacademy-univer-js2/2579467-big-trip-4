@@ -1,6 +1,7 @@
 import { render } from '../framework/render.js';
 import { replace } from '../framework/render.js';
 import { remove } from '../framework/render.js';
+import {UserAction, UpdateType} from '../const.js';
 import FormEditView from '../view/editing-form-view.js';
 import EventView from '../view/event-view.js';
 
@@ -38,7 +39,8 @@ export default class EventPresenter {
       event: this.#event,
       onFormSubmit: () => {
         this.#replaceFormToEvent();
-      }
+      },
+      onDeleteClick: this.#handleDeleteClick
     });
 
     if (prevEventComponent === null || prevEventEditComponent === null) {
@@ -56,6 +58,11 @@ export default class EventPresenter {
 
     remove(prevEventComponent);
     remove(prevEventEditComponent);
+  }
+
+  destroy() {
+    remove(this.#eventComponent);
+    remove(this.#eventEditComponent);
   }
 
   #escKeyDownHandler = (evt) => {
@@ -76,7 +83,10 @@ export default class EventPresenter {
   #replaceFormToEvent() {
     const updatedEvent = this.#eventEditComponent._state;
     this.#event = updatedEvent;
-    this.#handleDataChange(updatedEvent);
+    this.#handleDataChange(
+      UserAction.UPDATE_EVENT,
+      UpdateType.MINOR,
+      updatedEvent);
 
     replace(this.#eventComponent, this.#eventEditComponent);
     this.#isEventEditing = false;
@@ -85,7 +95,10 @@ export default class EventPresenter {
   }
 
   #handleFavoriteClick = () => {
-    this.#handleDataChange({...this.#event, isFavorite: !this.#event.isFavorite});
+    this.#handleDataChange(
+      UserAction.UPDATE_EVENT,
+      UpdateType.MINOR,
+      {...this.#event, isFavorite: !this.#event.isFavorite});
   };
 
   resetView() {
@@ -94,5 +107,13 @@ export default class EventPresenter {
       this.#replaceFormToEvent();
     }
   }
+
+  #handleDeleteClick = (event) => {
+    this.#handleDataChange(
+      UserAction.DELETE_EVENT,
+      UpdateType.MINOR,
+      event,
+    );
+  };
 
 }
