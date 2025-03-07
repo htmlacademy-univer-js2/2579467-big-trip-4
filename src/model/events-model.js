@@ -18,7 +18,7 @@ export default class EventsModel extends Observable {
     const index = this.#events.findIndex((event) => event.id === update.id);
 
     if (index === -1) {
-      throw new Error('Can\'t update unexisting event');
+      return;
     }
 
     this.#events = [
