@@ -22,8 +22,8 @@ const mockEvents = [
   {
     type: 'check-in',
     destinationID: 2,
-    startDate: new Date('2025-02-22T03:00'),
-    endDate: new Date('2025-02-22T04:00'),
+    startDate: new Date('2025-04-22T03:00'),
+    endDate: new Date('2025-04-22T04:00'),
     price: 10,
     offers: [1,3,5],
     isFavorite: true,
