@@ -90,7 +90,7 @@ export default class EventPresenter {
     this.#event = updatedEvent;
     this.#handleDataChange(
       UserAction.UPDATE_EVENT,
-      UpdateType.MINOR,
+      UpdateType.PATCH,
       updatedEvent);
 
     replace(this.#eventComponent, this.#eventEditComponent);

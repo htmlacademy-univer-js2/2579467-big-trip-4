@@ -20,10 +20,12 @@ export default class NewEventPresenter {
       return;
     }
 
+    this.#handleDestroy();
+
     this.#eventEditComponent = new FormEditView({
       onFormSubmit: this.#handleFormSubmit,
       onDeleteClick: this.#handleDeleteClick,
-      onCloseClick: this.#handleDeleteClick
+      onCloseClick: this.#handleCloseClick
     });
 
     render(this.#eventEditComponent, this.#eventListContainer, RenderPosition.AFTERBEGIN);
