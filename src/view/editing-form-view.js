@@ -5,17 +5,18 @@ import flatpickr from 'flatpickr';
 
 import 'flatpickr/dist/flatpickr.min.css';
 
-const EVENT_TYPES = ['taxi', 'bus', 'train', 'ship', 'drive', 'flight', 'check-in', 'sightseeing', 'restaurant'];
+import { EMPTY_EVENT, EVENT_TYPES } from '../const.js';
+
 
 function editFormViewTemplate(event) {
   const {startDate, endDate, type, price} = event;
-  const formStartDate = formatFormEventDate(startDate);
-  const formEndDate = formatFormEventDate(endDate);
-  const startTime = formatEventTime(startDate);
-  const endTime = formatEventTime(endDate);
-  const destination = getDestinationById(event);
-  const destinationName = destination.cityName;
-  const destinationDescription = destination.description;
+  const formStartDate = startDate ? formatFormEventDate(startDate) : '';
+  const formEndDate = endDate ? formatFormEventDate(endDate) : '';
+  const startTime = startDate ? formatEventTime(startDate) : '';
+  const endTime = endDate ? formatEventTime(endDate) : '';
+  const destination = getDestinationById(event) || {};
+  const destinationName = destination.cityName || '';
+  const destinationDescription = destination.description || '';
   const offers = getOffersByType(event);
 
   const offersTemplate = offers
@@ -82,7 +83,7 @@ function editFormViewTemplate(event) {
                     </label>
                     <input class="event__input  event__input--price" id="event-price-1" type="text" name="event-price" value="${price}">
                   </div>
-                  <button class="event__save-btn  btn  btn--blue" type="submit">Save</button>
+                  <button class="event__save-btn btn btn--blue" type="submit" ${!destinationName || !startDate || !endDate ? 'disabled' : ''}>Save</button>
                   <button class="event__reset-btn" type="reset">Delete</button>
                   <button class="event__rollup-btn" type="button">
                     <span class="visually-hidden">Open event</span>
@@ -96,7 +97,7 @@ function editFormViewTemplate(event) {
                     </div>
                   </section>
                   <section class="event__section  event__section--destination">
-                    <h3 class="event__section-title  event__section-title--destination">Destination</h3>
+                  ${destinationDescription ? '<h3 class="event__section-title  event__section-title--destination">Destination</h3>' : ''}
                     <p class="event__destination-description">${destinationDescription}</p>
                   </section>
                 </section>
@@ -106,12 +107,16 @@ function editFormViewTemplate(event) {
 
 export default class FormEditView extends AbstractStatefulView {
   #handleFormSubmit = null;
+  #handleDeleteClick = null;
+  #handleCloseClick = null;
   #datepicker = null;
 
-  constructor({event, onFormSubmit}) {
+  constructor({event = EMPTY_EVENT, onFormSubmit, onDeleteClick, onCloseClick}) {
     super();
     this._setState(event);
     this.#handleFormSubmit = onFormSubmit;
+    this.#handleDeleteClick = onDeleteClick;
+    this.#handleCloseClick = onCloseClick;
 
     this._restoreHandlers();
   }
@@ -135,7 +140,7 @@ export default class FormEditView extends AbstractStatefulView {
 
   _restoreHandlers() {
     this.element.querySelector('form').addEventListener('submit', this.#formCloseHandler);
-    this.element.querySelector('.event__rollup-btn').addEventListener('click', this.#formCloseHandler);
+    this.element.querySelector('.event__rollup-btn').addEventListener('click', this.#closeClickHandler);
 
     this.element.querySelectorAll('.event__type-input').forEach((input) => {
       input.addEventListener('click', this.#eventTypeEditHandler);
@@ -153,7 +158,16 @@ export default class FormEditView extends AbstractStatefulView {
       input.addEventListener('change', this.#eventPriceEditHandler);
     });
 
+    this.element.querySelectorAll('.event__input--price').forEach((input) => {
+      input.addEventListener('keydown', this.#eventPriceValidateHandler);
+    });
+
     this.#setDatepicker();
+
+    this.element.querySelectorAll('.event__reset-btn').forEach((button) => {
+      button.addEventListener('click', this.#formDeleteClickHandler);
+    });
+
   }
 
   #formCloseHandler = (evt) => {
@@ -208,8 +222,14 @@ export default class FormEditView extends AbstractStatefulView {
     }
   };
 
+  #eventPriceValidateHandler = (evt) => {
+    if (!/[0-9]/.test(evt.key) && evt.key !== 'Backspace') {
+      evt.preventDefault();
+    }
+  };
+
   #startDateChangeHandler = ([userDate]) => {
-    if (userDate <= this._state.endDate) {
+    if (userDate <= this._state.endDate || this._state.endDate === null) {
       this.updateElement({
         startDate: userDate,
       });
@@ -219,7 +239,7 @@ export default class FormEditView extends AbstractStatefulView {
   };
 
   #endDateChangeHandler = ([userDate]) => {
-    if (userDate >= this._state.startDate) {
+    if (userDate >= this._state.startDate || this._state.startDate === null) {
       this.updateElement({
         endDate: userDate,
       });
@@ -237,7 +257,7 @@ export default class FormEditView extends AbstractStatefulView {
     flatpickr(this.element.querySelector(selector), {
       dateFormat: 'd/m/y h:i',
       enableTime: true,
-      defaultDate: this._state[stateKey],
+      defaultDate: this._state[stateKey] || undefined,
       onChange: handler,
     });
   }
@@ -246,4 +266,14 @@ export default class FormEditView extends AbstractStatefulView {
   reset(event) {
     this.updateElement(event);
   }
+
+  #formDeleteClickHandler = (evt) => {
+    evt.preventDefault();
+    this.#handleDeleteClick(this.state);
+  };
+
+  #closeClickHandler = (evt) => {
+    evt.preventDefault();
+    this.#handleCloseClick();
+  };
 }

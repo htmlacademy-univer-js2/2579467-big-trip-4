@@ -26,14 +26,13 @@ function formatEventTime(date) {
 }
 
 function formatEventDuration(startDate, endDate) {
+  const diff = dayjs(endDate).diff(dayjs(startDate));
+  const eventDuration = dayjs.duration(diff);
+  const durationInDays = String(eventDuration.days()).padStart(2, '0');
+  const durationInHours = String(eventDuration.hours()).padStart(2, '0');
+  const durationInMinutes = String(eventDuration.minutes()).padStart(2, '0');
 
-  const eventDuration = dayjs.duration(endDate - startDate);
-
-  const durationInDays = eventDuration.format('DD');
-  const durationInHours = eventDuration.format('HH');
-  const durationInMinutes = eventDuration.format('mm');
-
-  if (durationInHours === '00') {
+  if (durationInHours === '00' && durationInDays === '00') {
     return `${durationInMinutes}M`;
   }
 
@@ -52,10 +51,6 @@ function getOffersByType(event) {
   return mockOffers.find((offer) => offer.type === event.type).offers;
 }
 
-function updatePointData(points, updatedPointData) {
-  return points.map((point) => point.id === updatedPointData.id ? updatedPointData : point);
-}
-
 function getDestinationByCityName(cityName) {
   return mockDestinations.find((destination) => destination.cityName === cityName);
 }
@@ -64,4 +59,17 @@ const setSaveButtonDisabled = () => {
   document.querySelector('.event__save-btn').disabled = true;
 };
 
-export {getRandomArrayElement, formatEventDate, formatEventTime, getDestinationById, getOffersByType, formatEventDuration, formatFormEventDate, updatePointData, getDestinationByCityName, setSaveButtonDisabled};
+function isEventPast(dueDate) {
+  return dueDate && dayjs().isAfter(dueDate, 'D');
+}
+
+function isEventToday(dueDate) {
+  return dueDate && dayjs(dueDate).isSame(dayjs(), 'D');
+}
+
+function isEventFuture(dueDate) {
+  return dueDate && dayjs().isBefore(dueDate, 'D');
+}
+
+
+export {getRandomArrayElement, formatEventDate, formatEventTime, getDestinationById, getOffersByType, formatEventDuration, formatFormEventDate, getDestinationByCityName, setSaveButtonDisabled, isEventPast, isEventToday, isEventFuture};
