@@ -1,7 +1,6 @@
 import dayjs from 'dayjs';
 import duration from 'dayjs/plugin/duration';
-import {mockDestinations} from './mock/destination';
-import {mockOffers} from './mock/offers';
+
 
 dayjs.extend(duration);
 
@@ -43,33 +42,22 @@ function formatEventDuration(startDate, endDate) {
   return `${durationInDays}D ${durationInHours}H ${durationInMinutes}M`;
 }
 
-function getDestinationById(event) {
-  return mockDestinations.find((destination) => destination.id === event.destinationID);
-}
-
-function getOffersByType(event) {
-  return mockOffers.find((offer) => offer.type === event.type).offers;
-}
-
-function getDestinationByCityName(cityName) {
-  return mockDestinations.find((destination) => destination.cityName === cityName);
-}
-
 const setSaveButtonDisabled = () => {
   document.querySelector('.event__save-btn').disabled = true;
 };
 
-function isEventPast(dueDate) {
-  return dueDate && dayjs().isAfter(dueDate, 'D');
+function isEventPast(startDate) {
+  return startDate && dayjs().isAfter(startDate, 'D');
 }
 
-function isEventToday(dueDate) {
-  return dueDate && dayjs(dueDate).isSame(dayjs(), 'D');
+function isEventToday(startDate, endDate) {
+  const now = new Date();
+  return startDate < now && now < endDate;
 }
 
-function isEventFuture(dueDate) {
-  return dueDate && dayjs().isBefore(dueDate, 'D');
+function isEventFuture(startDate) {
+  return startDate && dayjs().isBefore(startDate, 'D');
 }
 
 
-export {getRandomArrayElement, formatEventDate, formatEventTime, getDestinationById, getOffersByType, formatEventDuration, formatFormEventDate, getDestinationByCityName, setSaveButtonDisabled, isEventPast, isEventToday, isEventFuture};
+export {getRandomArrayElement, formatEventDate, formatEventTime, formatEventDuration, formatFormEventDate, setSaveButtonDisabled, isEventPast, isEventToday, isEventFuture};

@@ -2,11 +2,9 @@ import AbstractView from '../framework/view/abstract-view.js';
 import {formatEventDate} from '../utils.js';
 import {formatEventTime} from '../utils.js';
 import {formatEventDuration} from '../utils.js';
-import {getDestinationById} from '../utils.js';
-import {getOffersByType} from '../utils.js';
 
-function createEventTemplate(event) {
-  const {startDate, endDate, type, price, isFavorite} = event;
+function createEventTemplate(event, destinations, offersList) {
+  const {startDate, endDate, type, price, isFavorite, destinationID} = event;
 
   const date = formatEventDate(startDate);
 
@@ -14,11 +12,10 @@ function createEventTemplate(event) {
   const endTime = formatEventTime(endDate);
 
   const duration = formatEventDuration(startDate, endDate);
+  const destination = destinations.find((dest) => dest.id === destinationID);
+  const destinationName = destination.name;
 
-  const destination = getDestinationById(event);
-  const destinationName = destination.cityName;
-
-  const offers = getOffersByType(event);
+  const offers = offersList.find((offer) => offer.type === event.type).offers;
   const selectedOffers = offers
     .filter((offer) => event.offers.includes(offer.id))
     .map((offer) => `
@@ -69,12 +66,16 @@ function createEventTemplate(event) {
 
 export default class EventView extends AbstractView{
   #event = null;
+  #destinations = null;
+  #offers = null;
   #handleEditClick = null;
   #handleFavoriteClick = null;
 
-  constructor({event, onEditClick, onFavoriteClick}) {
+  constructor({event, destinations, offers, onEditClick, onFavoriteClick}) {
     super();
     this.#event = event;
+    this.#destinations = destinations;
+    this.#offers = offers;
     this.#handleEditClick = onEditClick;
     this.#handleFavoriteClick = onFavoriteClick;
     this.element.querySelector('.event__rollup-btn').addEventListener('click', this.#editClickHandler);
@@ -82,7 +83,7 @@ export default class EventView extends AbstractView{
   }
 
   get template() {
-    return createEventTemplate(this.#event);
+    return createEventTemplate(this.#event, this.#destinations, this.#offers);
   }
 
   #editClickHandler = (evt) => {

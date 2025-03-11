@@ -10,9 +10,13 @@ export default class EventPresenter {
   #eventComponent = null;
   #eventEditComponent = null;
   #event = null;
+  #destinations = null;
+  #offers = null;
   #handleDataChange = null;
   #handleViewChange = null;
   #isEventEditing = false;
+  #isEventSaving = true;
+  #isOtherFormOpen = false;
 
   constructor({eventListContainer, onDataChange, onViewChange}) {
     this.#eventListContainer = eventListContainer;
@@ -20,14 +24,19 @@ export default class EventPresenter {
     this.#handleViewChange = onViewChange;
   }
 
-  init (event) {
+  init (event, destinations, offers) {
     this.#event = event;
+    this.#destinations = destinations;
+    this.#offers = offers;
+
 
     const prevEventComponent = this.#eventComponent;
     const prevEventEditComponent = this.#eventEditComponent;
 
     this.#eventComponent = new EventView({
       event: this.#event,
+      destinations: this.#destinations,
+      offers: this.#offers,
       onEditClick: () => {
         this.#replaceEventToForm();
         document.addEventListener('keydown', this.#escKeyDownHandler);
@@ -37,9 +46,9 @@ export default class EventPresenter {
 
     this.#eventEditComponent = new FormEditView({
       event: this.#event,
-      onFormSubmit: () => {
-        this.#replaceFormToEvent();
-      },
+      destinations: this.#destinations,
+      offers: this.#offers,
+      onFormSubmit: async () => this.#replaceFormToEvent(),
       onDeleteClick: this.#handleDeleteClick,
       onCloseClick: () => {
         this.#replaceFormToEvent();
@@ -72,6 +81,8 @@ export default class EventPresenter {
     if (evt.key === 'Escape') {
       evt.preventDefault();
 
+      this.#isEventSaving = false;
+
 
       this.#eventEditComponent.reset(this.#event);
       this.#replaceFormToEvent();
@@ -80,18 +91,33 @@ export default class EventPresenter {
 
 
   #replaceEventToForm() {
-    replace(this.#eventEditComponent, this.#eventComponent);
+
     this.#handleViewChange();
+    this.#handleViewChange().then(() => {
+      replace(this.#eventEditComponent, this.#eventComponent);
+    });
     this.#isEventEditing = true;
   }
 
-  #replaceFormToEvent() {
-    const updatedEvent = this.#eventEditComponent._state;
+  async #replaceFormToEvent() {
+
+    const updatedEvent = this.#eventEditComponent.parseStateToEvent(this.#eventEditComponent._state);
+    const updatedDestination = this.#eventEditComponent.destinations;
+    const updatedOffers = this.#eventEditComponent.offers;
     this.#event = updatedEvent;
-    this.#handleDataChange(
-      UserAction.UPDATE_EVENT,
-      UpdateType.PATCH,
-      updatedEvent);
+
+    if (!this.#isOtherFormOpen && this.#isEventSaving) {
+      await this.#handleDataChange(
+        UserAction.UPDATE_EVENT,
+        UpdateType.PATCH,
+        updatedEvent,
+        updatedDestination,
+        updatedOffers
+      );
+    }
+
+    this.#isEventSaving = true;
+    this.#isOtherFormOpen = false;
 
     replace(this.#eventComponent, this.#eventEditComponent);
     this.#isEventEditing = false;
@@ -102,13 +128,14 @@ export default class EventPresenter {
   #handleFavoriteClick = () => {
     this.#handleDataChange(
       UserAction.UPDATE_EVENT,
-      UpdateType.MINOR,
+      UpdateType.PATCH,
       {...this.#event, isFavorite: !this.#event.isFavorite});
   };
 
   resetView() {
     if (this.#isEventEditing) {
       this.#eventEditComponent.reset(this.#event);
+      this.#isOtherFormOpen = true;
       this.#replaceFormToEvent();
     }
   }
@@ -120,5 +147,15 @@ export default class EventPresenter {
       event,
     );
   };
+
+  setSaving() {
+    if (this.#isEventEditing) {
+      this.#eventEditComponent.updateElement({
+        isSaving: true,
+        isDisabled: true
+      });
+    }
+  }
+
 
 }

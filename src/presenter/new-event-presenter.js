@@ -6,6 +6,8 @@ export default class NewEventPresenter {
   #eventListContainer = null;
   #handleDataChange = null;
   #handleDestroy = null;
+  #destinations = null;
+  #offers = null;
 
   #eventEditComponent = null;
 
@@ -15,7 +17,10 @@ export default class NewEventPresenter {
     this.#handleDestroy = onDestroy;
   }
 
-  init() {
+  init(destinations, offers) {
+    this.#destinations = destinations;
+    this.#offers = offers;
+
     if (this.#eventEditComponent !== null) {
       return;
     }
@@ -23,10 +28,13 @@ export default class NewEventPresenter {
     this.#handleDestroy();
 
     this.#eventEditComponent = new FormEditView({
+      destinations: this.#destinations,
+      offers: this.#offers,
       onFormSubmit: this.#handleFormSubmit,
       onDeleteClick: this.#handleDeleteClick,
       onCloseClick: this.#handleCloseClick
     });
+
 
     render(this.#eventEditComponent, this.#eventListContainer, RenderPosition.AFTERBEGIN);
 

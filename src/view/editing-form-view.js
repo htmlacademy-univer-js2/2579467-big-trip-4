@@ -1,5 +1,5 @@
 import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
-import { getDestinationById, formatFormEventDate, formatEventTime, getOffersByType, getDestinationByCityName, setSaveButtonDisabled} from '../utils.js';
+import {formatFormEventDate, formatEventTime, setSaveButtonDisabled} from '../utils.js';
 
 import flatpickr from 'flatpickr';
 
@@ -8,16 +8,17 @@ import 'flatpickr/dist/flatpickr.min.css';
 import { EMPTY_EVENT, EVENT_TYPES } from '../const.js';
 
 
-function editFormViewTemplate(event) {
-  const {startDate, endDate, type, price} = event;
+function editFormViewTemplate(event, destinations, offersList) {
+  const {startDate, endDate, type, price, destinationID, isDisabled, isSaving} = event;
   const formStartDate = startDate ? formatFormEventDate(startDate) : '';
   const formEndDate = endDate ? formatFormEventDate(endDate) : '';
   const startTime = startDate ? formatEventTime(startDate) : '';
   const endTime = endDate ? formatEventTime(endDate) : '';
-  const destination = getDestinationById(event) || {};
-  const destinationName = destination.cityName || '';
+  const destination = destinations.find((dest) => dest.id === destinationID) || {};
+  const destinationName = destination.name || '';
   const destinationDescription = destination.description || '';
-  const offers = getOffersByType(event);
+  const offers = offersList ? offersList.find((offer) => offer.type === event.type).offers : {};
+
 
   const offersTemplate = offers
     .map((offer) => {
@@ -41,6 +42,9 @@ function editFormViewTemplate(event) {
       <label class="event__type-label  event__type-label--${eventType}" for="event-type-${eventType}-1">${eventType[0].toUpperCase() + eventType.slice(1)}</label>
     </div>`).join('');
 
+  const destinationListTemplate = destinations
+    .map((dest) => `<option value="${dest.name}"></option>`).join('');
+
   return `<li class="trip-events__item">
             <form class="event event--edit" action="#" method="post">
                 <header class="event__header">
@@ -63,10 +67,7 @@ function editFormViewTemplate(event) {
                     </label>
                     <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${destinationName}" list="destination-list-1">
                     <datalist id="destination-list-1">
-                      <option value="Prague"></option>
-                      <option value="Barcelona"></option>
-                      <option value="Tokyo"></option>
-                      <option value="Paris"></option>
+                      ${destinationListTemplate}
                     </datalist>
                   </div>
                   <div class="event__field-group  event__field-group--time">
@@ -83,9 +84,9 @@ function editFormViewTemplate(event) {
                     </label>
                     <input class="event__input  event__input--price" id="event-price-1" type="text" name="event-price" value="${price}">
                   </div>
-                  <button class="event__save-btn btn btn--blue" type="submit" ${!destinationName || !startDate || !endDate ? 'disabled' : ''}>Save</button>
-                  <button class="event__reset-btn" type="reset">Delete</button>
-                  <button class="event__rollup-btn" type="button">
+                  <button class="event__save-btn btn btn--blue" type="submit" ${!destinationName || !startDate || !endDate || isDisabled ? 'disabled' : ''}>${isSaving ? 'Saving...' : 'Save'}</button>
+                  <button class="event__reset-btn" type="reset" ${isDisabled ? 'disabled' : ''}>Delete</button>
+                  <button class="event__rollup-btn" type="button" ${isDisabled ? 'disabled' : ''}>
                     <span class="visually-hidden">Open event</span>
                   </button>
                 </header>
@@ -110,10 +111,14 @@ export default class FormEditView extends AbstractStatefulView {
   #handleDeleteClick = null;
   #handleCloseClick = null;
   #datepicker = null;
+  #destinations = null;
+  #offers = null;
 
-  constructor({event = EMPTY_EVENT, onFormSubmit, onDeleteClick, onCloseClick}) {
+  constructor({event = EMPTY_EVENT, destinations, offers, onFormSubmit, onDeleteClick, onCloseClick}) {
     super();
-    this._setState(event);
+    this._setState({...event, isDisabled: false, isSaving: false});
+    this.#destinations = destinations;
+    this.#offers = offers;
     this.#handleFormSubmit = onFormSubmit;
     this.#handleDeleteClick = onDeleteClick;
     this.#handleCloseClick = onCloseClick;
@@ -121,12 +126,30 @@ export default class FormEditView extends AbstractStatefulView {
     this._restoreHandlers();
   }
 
-  get template() {
-    return editFormViewTemplate(this._state);
+  parseStateToEvent(state) {
+    const event = {...state};
+
+    delete event.isSaving;
+    delete event.isDisabled;
+
+    return event;
   }
+
+  get template() {
+    return editFormViewTemplate(this._state, this.#destinations, this.#offers);
+  }
+
 
   get state() {
     return this._state;
+  }
+
+  get destinations() {
+    return this.#destinations;
+  }
+
+  get offers() {
+    return this.#offers;
   }
 
   removeElement() {
@@ -170,9 +193,11 @@ export default class FormEditView extends AbstractStatefulView {
 
   }
 
-  #formCloseHandler = (evt) => {
+  #formCloseHandler = async (evt) => {
     evt.preventDefault();
-    this.#handleFormSubmit(this._state);
+
+    const updatedEvent = this.parseStateToEvent(this._state);
+    this.#handleFormSubmit(updatedEvent);
   };
 
   #eventTypeEditHandler = (evt) => {
@@ -189,8 +214,8 @@ export default class FormEditView extends AbstractStatefulView {
   #destinationEditHandler = (evt) => {
     evt.preventDefault();
     const cityName = evt.target.value;
-    const destination = getDestinationByCityName(cityName);
 
+    const destination = this.destinations.find((dest) => dest.name === cityName);
     if (destination) {
       this.updateElement({
         destinationID: destination.id
@@ -201,7 +226,7 @@ export default class FormEditView extends AbstractStatefulView {
   };
 
   #extraOffersEditHandler = (evt) => {
-    const offerId = Number(evt.target.id);
+    const offerId = evt.target.id;
 
     this.updateElement({
       offers: this._state.offers.includes(offerId) ? this._state.offers.filter((id) => id !== offerId) : [...this._state.offers, offerId]
@@ -223,7 +248,7 @@ export default class FormEditView extends AbstractStatefulView {
   };
 
   #eventPriceValidateHandler = (evt) => {
-    if (!/[0-9]/.test(evt.key) && evt.key !== 'Backspace') {
+    if (!/\d/.test(evt.key) && evt.key !== 'Backspace') {
       evt.preventDefault();
     }
   };
